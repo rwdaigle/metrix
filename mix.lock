@@ -1,0 +1,2 @@
+%{"logfmt": {:git, "https://github.com/jclem/logfmt-elixir.git", "9a961a5d82caabd0fcb400bffe4249e3129ca227", []},
+  "logfmt-elixir": {:git, "https://github.com/jclem/logfmt-elixir.git", "9a961a5d82caabd0fcb400bffe4249e3129ca227", []}}
