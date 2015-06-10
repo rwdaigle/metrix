@@ -26,6 +26,8 @@ defmodule Metrix do
     metadata
     |> Map.put("count##{metric}", num)
     |> log
+
+    metadata
   end
 
   def sample(metric, value), do: sample(%{}, metric, value)
@@ -33,6 +35,8 @@ defmodule Metrix do
     metadata
     |> Map.put("sample##{metric}", value)
     |> log
+
+    metadata
   end
 
   def measure(metric, fun), do: measure(%{}, metric, fun)

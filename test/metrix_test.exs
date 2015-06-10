@@ -15,6 +15,7 @@ defmodule MetrixTest do
     output = line(fn -> Metrix.count metadata, "event.name" end)
     assert output |> String.contains?("count#event.name=1")
     assert output |> String.contains?("meta=data")
+    line(fn -> assert Metrix.count(metadata, "event.name") == metadata end)
   end
 
   test "count with number" do
@@ -26,6 +27,7 @@ defmodule MetrixTest do
     output = line(fn -> Metrix.count metadata, "event.name", 23 end)
     assert output |> String.contains?("count#event.name=23")
     assert output |> String.contains?("meta=data")
+    line(fn -> assert Metrix.count(metadata, "event.name", 1) == metadata end)
   end
 
   test "sample" do
@@ -37,6 +39,7 @@ defmodule MetrixTest do
     output = line(fn -> Metrix.sample metadata, "event.name", "13.4mb" end)
     assert output |> String.contains?("sample#event.name=13.4mb")
     assert output |> String.contains?("meta=data")
+    line(fn -> assert Metrix.sample(metadata, "event.name", "13.4mb") == metadata end)
   end
 
   test "measure" do
