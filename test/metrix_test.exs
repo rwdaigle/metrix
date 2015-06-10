@@ -2,6 +2,10 @@ defmodule MetrixTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
 
+  setup do
+    on_exit fn -> Metrix.clear_context end
+  end
+
   test "basic count" do
     assert line(fn -> Metrix.count "event.name" end) == "count#event.name=1"
   end
@@ -49,9 +53,23 @@ defmodule MetrixTest do
 
   test "measure with metadata passed to function" do
     metadata = %{"meta" => "data"}
-    output = line(fn -> Metrix.measure metadata, "event.name", fn %{"meta" => data} -> :timer.sleep(1) end end)
+    output = line(fn -> Metrix.measure metadata, "event.name", fn %{"meta" => _data} -> :timer.sleep(1) end end)
     assert matches_measure?(output), "Unexpected output format \"#{output}\""
     assert output |> String.contains?("meta=data")
+  end
+
+  test "context" do
+    Metrix.add_context %{"parent" => "context"}
+    assert Metrix.get_context == %{"parent" => "context"}
+  end
+
+  test "context output" do
+    Metrix.add_context %{"parent" => "context"}
+    metadata = %{"meta" => "data"}
+    output = line(fn -> Metrix.count metadata, "event.name" end)
+    assert output |> String.contains?("parent=context")
+    assert output |> String.contains?("meta=data")
+    assert output |> String.contains?("event.name=1")
   end
 
   defp line(fun), do: capture_io(fun) |> String.strip
