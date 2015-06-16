@@ -189,4 +189,4 @@ There are a few known missing pieces, including:
 
 ## Acknowledgements
 
-This library was built as an Elixir alternative to the Ruby-based [Scrolls](https://github.com/jclem/logfmt-elixir) library, which I've found to be indispensable. It was also built on top of [Logfmt](), which handles the mundane but critical task of actually formatting the output as correctly escaped key/value pairs.
+This library was built as an Elixir alternative to the Ruby-based [Scrolls](https://github.com/asenchi/scrolls) library, which I've found to be indispensable. It was also built on top of [Logfmt](https://github.com/jclem/logfmt-elixir), which handles the mundane but critical task of actually formatting the output as correctly escaped key/value pairs.
