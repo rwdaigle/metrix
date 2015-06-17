@@ -13,7 +13,7 @@ sample#api.response.size=1.34kb path=/v1/user.json
 count#user.login user_id=32 other="data with spaces"
 ```
 
-*Metrix does **not** do any calculations itself. It merely logs the data its given in a specific format. If you are looking for an in-app instrumentation library, you may want to look at [exometer](https://github.com/Feuerlabs/exometer) or [folsom](https://github.com/boundary/folsom) instead.*
+Note: Metrix does *not* do any calculations itself. It merely logs the data its given in a specific format. If you are looking for an in-app instrumentation library, you may want to look at [exometer](https://github.com/Feuerlabs/exometer) or [folsom](https://github.com/boundary/folsom) instead.
 
 ## Benefits
 
