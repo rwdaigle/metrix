@@ -43,7 +43,7 @@ And declare it as a dependency:
 defp deps do
   [
     # ...
-    {:metrix, github: "rwdaigle/metrix"}
+    {:metrix, "~> 0.1.0"}
   ]
 end
 ```

@@ -3,9 +3,11 @@ defmodule Metrix.Mixfile do
 
   def project do
     [app: :metrix,
-     version: "0.0.1",
+     version: "0.1.0",
+     description: description,
      elixir: "~> 1.0",
-     deps: deps]
+     deps: deps,
+     package: package]
   end
 
   # Configuration for the OTP application
@@ -26,6 +28,21 @@ defmodule Metrix.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [{:logfmt, git: "https://github.com/jclem/logfmt-elixir.git"}]
+    [{:logfmt, "~> 3.0"}]
+  end
+
+  defp description do
+    """
+    Metrix is a library to log custom application metrics, in a well-structured,
+    human *and* machine readable format, for use by downstream log processing
+    systems (like Librato, Reimann, etc...)
+    """
+  end
+
+  defp package do
+    [contributors: ["Ryan Daigle <ryan.daigle@gmail.com>"],
+    licenses: ["MIT"],
+    links: %{"GitHub" => "https://github.com/rwdaigle/metrix"},
+    files: ~w(mix.exs lib README.md)]
   end
 end
