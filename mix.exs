@@ -3,11 +3,12 @@ defmodule Metrix.Mixfile do
 
   def project do
     [app: :metrix,
-     version: "0.1.0",
+     version: "0.2.0",
      description: description,
      elixir: "~> 1.0",
      deps: deps,
-     package: package]
+     package: package,
+     source_url: "https://github.com/rwdaigle/metrix"]
   end
 
   # Configuration for the OTP application
@@ -28,7 +29,10 @@ defmodule Metrix.Mixfile do
   #
   # Type `mix help deps` for more examples and options
   defp deps do
-    [{:logfmt, "~> 3.0"}]
+    [
+      {:logfmt, "~> 3.0"},
+      {:ex_doc, "~> 0.7", only: :dev}
+    ]
   end
 
   defp description do

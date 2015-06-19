@@ -15,16 +15,23 @@ defmodule Metrix do
     Supervisor.start_link(children, opts)
   end
 
+
+  @doc """
+  Adds `metadata` to the global context, which will add the metadata values
+  to all subsequent metrix output. Global context is useful for component-wide
+  values, such as source=X or app=Y metadata, that remains unchanged throughout
+  the life of your application.
+  """
   def add_context(metadata), do: Context.put(metadata)
   def get_context, do: Context.get
   def clear_context, do: Context.clear
 
   def count(metric), do: count(metric, 1)
-  def count(metadata, metric) when is_map(metadata), do: count(metadata, metric, 1)
-  def count(metric, num), do: count(%{}, metric, num)
+  def count(metric, num) when is_number(num), do: count(%{}, metric, num)
+  def count(metadata, metric), do: count(metadata, metric, 1)
   def count(metadata, metric, num) do
     metadata
-    |> Map.put("count##{metric}", num)
+    |> add(:"count##{metric}", num)
     |> log
 
     metadata
@@ -33,7 +40,7 @@ defmodule Metrix do
   def sample(metric, value), do: sample(%{}, metric, value)
   def sample(metadata, metric, value) do
     metadata
-    |> Map.put("sample##{metric}", value)
+    |> add(:"sample##{metric}", value)
     |> log
 
     metadata
@@ -48,18 +55,20 @@ defmodule Metrix do
     end
 
     metadata
-    |> Map.put("measure##{metric}", "#{service_us / 1000}ms")
+    |> add(:"measure##{metric}", "#{service_us / 1000}ms")
     |> log
 
     ret_value
   end
 
-  def log(map) when is_map(map) do
-    map
-    |> Map.merge(get_context)
+  def log(values) do
+    values
+    |> Dict.merge(get_context)
     |> Logfmt.encode
     |> write
   end
+
+  defp add(dict, key, value), do: dict |> Dict.put(key, value)
 
   defp write(output), do: output |> IO.puts
 end

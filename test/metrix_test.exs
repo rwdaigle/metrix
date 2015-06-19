@@ -1,4 +1,5 @@
 defmodule MetrixTest do
+
   use ExUnit.Case
   import ExUnit.CaptureIO
 
@@ -11,11 +12,12 @@ defmodule MetrixTest do
   end
 
   test "basic count with metadata" do
-    metadata = %{"meta" => "data"}
-    output = line(fn -> Metrix.count metadata, "event.name" end)
-    assert output |> String.contains?("count#event.name=1")
-    assert output |> String.contains?("meta=data")
-    line(fn -> assert Metrix.count(metadata, "event.name") == metadata end)
+    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+      output = line(fn -> Metrix.count metadata, "event.name" end)
+      assert output |> String.contains?("count#event.name=1")
+      assert output |> String.contains?("meta=data")
+      line(fn -> assert Metrix.count(metadata, "event.name") == metadata end)
+    end
   end
 
   test "count with number" do
@@ -23,11 +25,12 @@ defmodule MetrixTest do
   end
 
   test "count with number and metadata" do
-    metadata = %{"meta" => "data"}
-    output = line(fn -> Metrix.count metadata, "event.name", 23 end)
-    assert output |> String.contains?("count#event.name=23")
-    assert output |> String.contains?("meta=data")
-    line(fn -> assert Metrix.count(metadata, "event.name", 1) == metadata end)
+    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+      output = line(fn -> Metrix.count metadata, "event.name", 23 end)
+      assert output |> String.contains?("count#event.name=23")
+      assert output |> String.contains?("meta=data")
+      line(fn -> assert Metrix.count(metadata, "event.name", 1) == metadata end)
+    end
   end
 
   test "sample" do
@@ -35,11 +38,12 @@ defmodule MetrixTest do
   end
 
   test "sample with metadata" do
-    metadata = %{"meta" => "data"}
-    output = line(fn -> Metrix.sample metadata, "event.name", "13.4mb" end)
-    assert output |> String.contains?("sample#event.name=13.4mb")
-    assert output |> String.contains?("meta=data")
-    line(fn -> assert Metrix.sample(metadata, "event.name", "13.4mb") == metadata end)
+    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+      output = line(fn -> Metrix.sample metadata, "event.name", "13.4mb" end)
+      assert output |> String.contains?("sample#event.name=13.4mb")
+      assert output |> String.contains?("meta=data")
+      line(fn -> assert Metrix.sample(metadata, "event.name", "13.4mb") == metadata end)
+    end
   end
 
   test "measure" do
@@ -48,22 +52,40 @@ defmodule MetrixTest do
   end
 
   test "measure with metadata" do
-    metadata = %{"meta" => "data"}
-    output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
-    assert matches_measure?(output), "Unexpected output format \"#{output}\""
-    assert output |> String.contains?("meta=data")
+    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+      output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
+      assert matches_measure?(output), "Unexpected output format \"#{output}\""
+      assert output |> String.contains?("meta=data")
+    end
   end
 
-  test "measure with metadata passed to function" do
+  test "measure with map metadata passed to function" do
     metadata = %{"meta" => "data"}
     output = line(fn -> Metrix.measure metadata, "event.name", fn %{"meta" => _data} -> :timer.sleep(1) end end)
     assert matches_measure?(output), "Unexpected output format \"#{output}\""
     assert output |> String.contains?("meta=data")
   end
 
+  test "measure with keyword list metadata passed to function" do
+    metadata = [meta: "data"]
+    output = line(fn -> Metrix.measure metadata, "event.name", fn [meta: _data] -> :timer.sleep(1) end end)
+    assert matches_measure?(output), "Unexpected output format \"#{output}\""
+    assert output |> String.contains?("meta=data")
+  end
+
   test "context" do
-    Metrix.add_context %{"parent" => "context"}
-    assert Metrix.get_context == %{"parent" => "context"}
+    for context <- [%{"global" => "context"}, [global: "context"]] do
+      Metrix.add_context context
+      assert Metrix.get_context == Dict.merge(%{}, context)
+      Metrix.clear_context
+    end
+  end
+
+  test "adding to the context" do
+    [c1, c2] = [%{"global1" => "context"}, [global2: "context"]]
+    Metrix.add_context c1
+    Metrix.add_context c2
+    assert Metrix.get_context == Dict.merge(c1, c2)
   end
 
   test "context output" do

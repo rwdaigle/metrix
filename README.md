@@ -88,6 +88,12 @@ Which outputs:
 count#event.name=1 path=/users/1
 ```
 
+`metadata` can be a map or keyword list:
+
+```elixir
+[path: "/users/1"] |> count "app.event"
+```
+
 When passed to log processors like Librato, counts can be min, max, summed, stacked etc...
 
 ![](http://f.cl.ly/items/1C2r2e1p2E233m0H3S2s/Image%202015-06-15%20at%209.26.29%20AM.png)
@@ -102,7 +108,7 @@ Samples are logged in the same fashion as `count`:
 import Metrix
 
 sample "file.size", "12.3kb"
-%{"file" => "/images/hi.png"} |> sample "file.size", "12.3kb"
+[file: "/images/hi.png"] |> sample "file.size", "12.3kb"
 ```
 
 Which will output:
@@ -125,7 +131,7 @@ import Metrix
 
 measure "api.request", fn -> HTTPotion.get "httpbin.org/get" end
 
-%{"path" => "/get"}
+[path: "/get"]
 |> measure "api.request", fn -> HTTPotion.get "httpbin.org/get" end
 ```
 
