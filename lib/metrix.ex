@@ -8,23 +8,12 @@ defmodule Metrix do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Metrix.Context, [])
+      worker(Metrix.Context, [:global])
     ]
 
     opts = [strategy: :one_for_one, name: Metrix.Supervisor]
     Supervisor.start_link(children, opts)
   end
-
-
-  @doc """
-  Adds `metadata` to the global context, which will add the metadata values
-  to all subsequent metrix output. Global context is useful for component-wide
-  values, such as source=X or app=Y metadata, that remains unchanged throughout
-  the life of your application.
-  """
-  def add_context(metadata), do: Context.put(metadata)
-  def get_context, do: Context.get
-  def clear_context, do: Context.clear
 
   def count(metric), do: count(metric, 1)
   def count(metric, num) when is_number(num), do: count(%{}, metric, num)
@@ -63,12 +52,32 @@ defmodule Metrix do
 
   def log(values) do
     values
-    |> Dict.merge(get_context)
+    |> Dict.merge(get_global_context)
     |> Logfmt.encode
     |> write
   end
 
+  def set_global_context(metadata), do: Context.put(:global, metadata)
+  def get_global_context, do: Context.get(:global)
+  def clear_global_context, do: Context.clear(:global)
+
+  def add_context(metadata, fun) do
+    System.get_pid
+    |> setup_context
+    |> Context.put(metadata)
+
+    fun.()
+    System.get_pid |> Context.pop
+  end
+
+  def get_context, do: Context.get(System.get_pid)
+
   defp add(dict, key, value), do: dict |> Dict.put(key, value)
 
   defp write(output), do: output |> IO.puts
+
+  defp setup_context(name) do
+    Context.start_link(name)
+    name
+  end
 end

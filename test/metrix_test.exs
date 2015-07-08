@@ -4,7 +4,7 @@ defmodule MetrixTest do
   import ExUnit.CaptureIO
 
   setup do
-    on_exit fn -> Metrix.clear_context end
+    on_exit fn -> Metrix.clear_global_context end
   end
 
   test "basic count" do
@@ -73,28 +73,30 @@ defmodule MetrixTest do
     assert output |> String.contains?("meta=data")
   end
 
-  test "context" do
+  test "global context" do
     for context <- [%{"global" => "context"}, [global: "context"]] do
-      Metrix.add_context context
-      assert Metrix.get_context == Dict.merge(%{}, context)
-      Metrix.clear_context
+      Metrix.set_global_context context
+      assert Metrix.get_global_context == Dict.merge(%{}, context)
+      Metrix.clear_global_context
     end
   end
 
-  test "adding to the context" do
-    [c1, c2] = [%{"global1" => "context"}, [global2: "context"]]
-    Metrix.add_context c1
-    Metrix.add_context c2
-    assert Metrix.get_context == Dict.merge(c1, c2)
-  end
-
-  test "context output" do
-    Metrix.add_context %{"parent" => "context"}
+  test "global context output" do
+    Metrix.set_global_context %{"global" => "context"}
     metadata = %{"meta" => "data"}
     output = line(fn -> Metrix.count metadata, "event.name" end)
-    assert output |> String.contains?("parent=context")
+    assert output |> String.contains?("global=context")
     assert output |> String.contains?("meta=data")
     assert output |> String.contains?("event.name=1")
+  end
+
+  test "scoped context" do
+    for context <- [%{"global" => "context"}, [global: "context"]] do
+      Metrix.add_context context, fn ->
+        assert Metrix.get_context == Dict.merge(%{}, context)
+        Metrix.clear_context
+      end
+    end
   end
 
   defp line(fun), do: capture_io(fun) |> String.strip
