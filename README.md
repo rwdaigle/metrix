@@ -43,7 +43,7 @@ And declare it as a dependency:
 defp deps do
   [
     # ...
-    {:metrix, "~> 0.1.0"}
+    {:metrix, "~> 0.2.0"}
   ]
 end
 ```
