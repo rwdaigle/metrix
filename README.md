@@ -56,7 +56,7 @@ $ mix deps.get
 
 ## Usage
 
-There are three types of metrics natively supported by Metrixs, `count`s, `sample`s and `measure`ments.
+There are three types of metrics natively supported by Metrix: `count`s, `sample`s and `measure`ments.
 
 ### Count
 
