@@ -5,7 +5,7 @@ An Elixir library to log custom application metrics (for use by other downstream
 
 Metrix subscribes to the Twelve Factor App notion that [logs are streams of time-ordered events](http://12factor.net/logs) and that events should be captured and recorded in the [l2met logging convention](https://github.com/ryandotsmith/l2met/wiki/Usage#logging-convention).
 
-What this means in pragmatic terms is that this library provides a few convenience methods to help you capture data from your application to `stdout` in a well-structured key-value format:
+What this means in pragmatic terms is that this library provides a few convenience methods to help you capture data from your application to your logging output in a well-structured key-value format:
 
 ```
 measure#api.request.service=23.43ms path=/v1/user.json response_status=200
@@ -22,7 +22,7 @@ Treating "logs as data" in this manner has several advantages, including:
 * Logs are machine parseable *and* human readable, providing the best of both worlds
 * It's a low-overhead way of getting data out of your app, not requiring any additional in-app processing or dependencies
 * The ability to pipe app data to one or more downstream processors, such as Librato for visualization and Reimann for alerting, without requiring modification to the app
-* Data is output via `stdout` and can be manipulated with a multitude of POSIX utilities
+* Data is output via logging and can be manipulated with a multitude of POSIX utilities
 
 If you are looking for a more substantive justification for this style of logging, please see [5 Steps to Better Application Logging](http://www.miyagijournal.com/articles/five-steps-application-logging/).
 
@@ -172,6 +172,17 @@ count#event.name=1 source=node.us-east.1a
 
 The context can be cleared with `Metrix.clear_context`, though be aware it is global context and will be cleared for all output.
 
+### Configuration
+
+Metrix writes to `Logger.info`. To adjust the output target, set the logger configuration in `config.exs`. For instance, to write to `stdout` (the Elixir default) with no timestamp line info, do:
+
+```elixir
+config :logger, :console,
+  level: :info,
+  format: "$message\n",
+  colors: [enabled: false]
+ ```
+
 ## Heroku & Librato
 
 Librato is my preferred choice for metrics visualization and long-term storage. It also plays very well with apps deployed to Heroku. Follow these instructions to get your Heroku app's Metrix log output streaming to Librato for processing.
@@ -189,10 +200,21 @@ If you already have a Librato account, you can still stream your data to from He
 There are a few known missing pieces, including:
 
 * Multiple metrics per log line
-* Scoped contexts (e.g., request ids)
-* Logger/log level integration
+* Scoped contexts (e.g., request ids) - is this even possible w/ Elixir w/o having to pass the data through the whole call stack?
 * k/v pair ordering
 
-## Acknowledgements
+## Contributions
 
 This library was built as an Elixir alternative to the Ruby-based [Scrolls](https://github.com/asenchi/scrolls) library, which I've found to be indispensable. It was also built on top of [Logfmt](https://github.com/jclem/logfmt-elixir), which handles the mundane but critical task of actually formatting the output as correctly escaped key/value pairs.
+
+Code contributors include:
+
+* [sdball](https://github.com/sdball)
+* [davidsantoso](https://github.com/davidsantoso)
+
+## Changelog
+
+### 0.3.0
+
+* Output is now written to `Logger.info` instead of `stdout` and will respect existing Logger settings.
+* Due to the use of `ExUnit.CaptureLog`, Elixir v1.1.0 and up is required.

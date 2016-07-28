@@ -3,9 +3,9 @@ defmodule Metrix.Mixfile do
 
   def project do
     [app: :metrix,
-     version: "0.2.0",
+     version: "0.3.0",
      description: description,
-     elixir: "~> 1.0",
+     elixir: "~> 1.1.0",
      deps: deps,
      package: package,
      source_url: "https://github.com/rwdaigle/metrix"]
