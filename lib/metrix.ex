@@ -70,5 +70,5 @@ defmodule Metrix do
 
   defp add(dict, key, value), do: dict |> Dict.put(key, value)
 
-  defp write(output), do: output |> IO.puts
+  defp write(output), do: output |> Logger.info
 end

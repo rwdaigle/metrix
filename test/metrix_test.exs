@@ -1,7 +1,7 @@
 defmodule MetrixTest do
 
   use ExUnit.Case
-  import ExUnit.CaptureIO
+  import ExUnit.CaptureLog
 
   setup do
     on_exit fn -> Metrix.clear_context end
@@ -97,7 +97,7 @@ defmodule MetrixTest do
     assert output |> String.contains?("event.name=1")
   end
 
-  defp line(fun), do: capture_io(fun) |> String.strip
+  defp line(fun), do: capture_log(fun) |> String.strip
 
   defp matches_measure?(output) do
     Regex.match?(~r/measure#event.name=[0-9]+\.+[0-9]+ms/u, output)
