@@ -211,8 +211,13 @@ Code contributors include:
 
 * [sdball](https://github.com/sdball)
 * [davidsantoso](https://github.com/davidsantoso)
+* [shosti](https://github.com/shosti)
 
 ## Changelog
+
+### 0.3.1
+
+* Relax Elixir version requirement
 
 ### 0.3.0
 
