@@ -46,20 +46,27 @@ defmodule Metrix do
     metadata
   end
 
-  def measure(metric, fun), do: measure(%{}, metric, fun)
-  def measure(metadata, metric, fun) do
-
+  def measure(metric, fun) when is_function(fun), do: measure(%{}, metric, fun)
+  def measure(metric, value) when is_binary(value), do: measure(%{}, metric, value)
+  def measure(metadata, metric, fun) when is_function(fun) do
     {service_us, ret_value} = cond do
       is_function(fun, 0) -> :timer.tc(fun)
       is_function(fun, 1) -> :timer.tc(fun, [metadata])
     end
 
     metadata
-    |> add(:"measure##{metric}", "#{service_us / 1000}ms")
-    |> log
+    |> measure(metric, "#{service_us / 1000}ms")
 
     ret_value
   end
+  def measure(metadata, metric, value) when is_binary(value) do
+    metadata
+    |> add(:"measure##{metric}", value)
+    |> log
+
+    metadata
+  end
+
 
   def log(values) do
     values

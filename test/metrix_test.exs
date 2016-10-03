@@ -73,6 +73,11 @@ defmodule MetrixTest do
     assert output |> String.contains?("meta=data")
   end
 
+  test "measure with explicit value" do
+    output = line(fn -> Metrix.measure("event.name", "2.43msms") end)
+    assert matches_measure?(output), "Unexpected output format \"#{output}\""
+  end
+
   test "context" do
     for context <- [%{"global" => "context"}, [global: "context"]] do
       Metrix.add_context context
