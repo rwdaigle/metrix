@@ -1,5 +1,7 @@
 ExUnit.start()
 
+ExUnit.configure exclude: [:config]
+
 # Streamline logger output to just the message for easier testing
 Logger.configure_backend :console,
   level: :info,

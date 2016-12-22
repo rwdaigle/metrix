@@ -3,7 +3,7 @@ defmodule Metrix.Context do
   Starts a new context.
   """
   def start_link do
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
+    Agent.start_link(fn -> config() end, name: __MODULE__)
   end
 
   @doc """
@@ -25,5 +25,14 @@ defmodule Metrix.Context do
   """
   def clear do
     Agent.update(__MODULE__, fn _metadata -> %{} end)
+  end
+
+  # Read any configuration values
+  defp config do
+    case Application.get_env(:metrix, :context) do
+      nil -> %{}
+      context ->
+        context
+    end
   end
 end
