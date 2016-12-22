@@ -4,7 +4,7 @@ defmodule MetrixTest do
   import ExUnit.CaptureLog
 
   setup do
-    on_exit fn -> Metrix.clear_context end
+    Metrix.clear_context
   end
 
   test "basic count" do
@@ -34,6 +34,7 @@ defmodule MetrixTest do
   end
 
   test "sample" do
+    Metrix.clear_context
     assert line(fn -> Metrix.sample "event.name", "13.4mb" end) == "sample#event.name=13.4mb"
   end
 

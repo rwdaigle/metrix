@@ -183,6 +183,13 @@ config :logger, :console,
   colors: [enabled: false]
  ```
 
+Metrix allows its initial context to be configured, which must be a map:
+
+```elixir
+config :metrix,
+  context: %{"source", "my-app"}
+```
+
 ## Heroku & Librato
 
 Librato is my preferred choice for metrics visualization and long-term storage. It also plays very well with apps deployed to Heroku. Follow these instructions to get your Heroku app's Metrix log output streaming to Librato for processing.
