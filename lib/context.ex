@@ -1,9 +1,10 @@
 defmodule Metrix.Context do
+
   @doc """
   Starts a new context.
   """
-  def start_link do
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
+  def start_link(initial_context) do
+    Agent.start_link(fn -> initial_context end, name: __MODULE__)
   end
 
   @doc """

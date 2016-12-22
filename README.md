@@ -43,7 +43,7 @@ And declare it as a dependency:
 defp deps do
   [
     # ...
-    {:metrix, "~> 0.2.0"}
+    {:metrix, "~> 0.4.0"}
   ]
 end
 ```
@@ -172,7 +172,16 @@ count#event.name=1 source=node.us-east.1a
 
 The context can be cleared with `Metrix.clear_context`, though be aware it is global context and will be cleared for all output.
 
+The global context can also be set via the configuration...
+
 ### Configuration
+
+Metrix allows its initial context to be configured, which must be a map:
+
+```elixir
+config :metrix,
+  context: %{"source", "my-app"}
+```
 
 Metrix writes to `Logger.info`. To adjust the output target, set the logger configuration in `config.exs`. For instance, to write to `stdout` (the Elixir default) with no timestamp line info, do:
 
@@ -193,7 +202,7 @@ If your app is deployed to Heroku, just add the Librato add-on and all [custom c
 
 ### External Librato account
 
-If you already have a Librato account, you can still stream your data to from Heroku by setting up a [custom log drain](http://support.metrics.librato.com/knowledgebase/articles/265391-heroku-native-and-custom-metrics-without-the-libra).
+If you already have a Librato account, you can still stream your data to from Heroku by setting up a [custom log drain](https://www.librato.com/docs/kb/collect/integrations/heroku_integration.html).
 
 ## Todo
 
@@ -209,11 +218,16 @@ This library was built as an Elixir alternative to the Ruby-based [Scrolls](http
 
 Code contributors include:
 
+* [objectuser](https://github.com/objectuser)
 * [sdball](https://github.com/sdball)
 * [davidsantoso](https://github.com/davidsantoso)
 * [shosti](https://github.com/shosti)
 
 ## Changelog
+
+### 0.4.0
+
+* Allow global context to be set via app configuration
 
 ### 0.3.1
 
@@ -221,5 +235,5 @@ Code contributors include:
 
 ### 0.3.0
 
-* Output is now written to `Logger.info` instead of `stdout` and will respect existing Logger settings.
-* Due to the use of `ExUnit.CaptureLog`, Elixir v1.1.0 and up is required.
+* Output is now written to `Logger.info` instead of `stdout` and will respect existing Logger settings
+* Due to the use of `ExUnit.CaptureLog`, Elixir v1.1.0 and up is required

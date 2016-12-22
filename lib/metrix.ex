@@ -8,13 +8,19 @@ defmodule Metrix do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Metrix.Context, [])
+      worker(Metrix.Context, [initial_context()])
     ]
 
     opts = [strategy: :one_for_one, name: Metrix.Supervisor]
     Supervisor.start_link(children, opts)
   end
 
+  defp initial_context do
+    case Application.get_env(:metrix, :context) do
+      nil -> %{}
+      context -> context
+    end
+  end
 
   @doc """
   Adds `metadata` to the global context, which will add the metadata values
@@ -63,7 +69,7 @@ defmodule Metrix do
 
   def log(values) do
     values
-    |> Dict.merge(get_context)
+    |> Dict.merge(get_context())
     |> Logfmt.encode
     |> write
   end
