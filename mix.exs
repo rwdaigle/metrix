@@ -44,9 +44,16 @@ defmodule Metrix.Mixfile do
   end
 
   defp package do
-    [contributors: ["Ryan Daigle <ryan.daigle@gmail.com>"],
-    licenses: ["MIT"],
-    links: %{"GitHub" => "https://github.com/rwdaigle/metrix"},
-    files: ~w(mix.exs lib README.md)]
+    [
+      maintainers: ["Ryan Daigle <ryan.daigle@gmail.com>"],
+      contributors: [
+        "Kevin Lewis <kevin@spreedly.com>",
+        "Emanuel Evans <mail@emanuel.industries>",
+        "Stephen Ball <sdball@gmail.com>",
+        "David Santoso"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => "https://github.com/rwdaigle/metrix"},
+      files: ~w(mix.exs lib README.md)
+    ]
   end
 end
