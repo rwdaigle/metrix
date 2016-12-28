@@ -228,6 +228,7 @@ Code contributors include:
 ### 0.4.0
 
 * Allow global context to be set via app configuration
+* Bump Elixir version
 
 ### 0.3.1
 

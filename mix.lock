@@ -1,3 +1,4 @@
-%{"ex_doc": {:hex, :ex_doc, "0.7.3", "8f52bfbfcbc0206dd08dd94aae86a3fd5330ba2f37c73cfea2918ed4c96d1769", [:mix], [{:earmark, "~> 0.1.17 or ~> 0.2", [hex: :earmark, optional: true]}]},
-  "logfmt": {:hex, :logfmt, "3.0.2", "8d1266d8ea4e35cb476952723a9c91e0684caa233bf51a6e58187598be50da60", [:mix], []},
+%{"earmark": {:hex, :earmark, "1.0.3", "89bdbaf2aca8bbb5c97d8b3b55c5dd0cff517ecc78d417e87f1d0982e514557b", [:mix], []},
+  "ex_doc": {:hex, :ex_doc, "0.14.5", "c0433c8117e948404d93ca69411dd575ec6be39b47802e81ca8d91017a0cf83c", [:mix], [{:earmark, "~> 1.0", [hex: :earmark, optional: false]}]},
+  "logfmt": {:hex, :logfmt, "3.2.0", "887a091adad28acc6e4d8b3d3bce177b934e7c61e7655c86946410f44aca6d84", [:mix], []},
   "logfmt-elixir": {:git, "https://github.com/jclem/logfmt-elixir.git", "9a961a5d82caabd0fcb400bffe4249e3129ca227", []}}
