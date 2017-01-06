@@ -3,7 +3,7 @@ defmodule Metrix.Mixfile do
 
   def project do
     [app: :metrix,
-     version: "0.4.0",
+     version: "0.4.1",
      description: description(),
      elixir: ">= 1.3.0",
      deps: deps(),

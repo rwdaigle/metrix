@@ -5,6 +5,7 @@ defmodule MetrixTest do
 
   setup do
     Metrix.clear_context
+    Metrix.clear_prefix
   end
 
   test "basic count" do
@@ -71,5 +72,21 @@ defmodule MetrixTest do
     output = line(fn -> Metrix.measure metadata, "event.name", fn [meta: _data] -> :timer.sleep(1) end end)
     assert matches_measure?(output), "Unexpected output format \"#{output}\""
     assert output |> String.contains?("meta=data")
+  end
+
+  test "count with prefix" do
+    Metrix.put_prefix("prefix-")
+    assert line(fn -> Metrix.count "event.name" end) == "count#prefix-event.name=1"
+  end
+
+  test "measure with prefix" do
+    Metrix.put_prefix("prefix-")
+    output = line(fn -> Metrix.measure "event.name", fn -> :timer.sleep(1) end end)
+    assert Regex.match?(~r/measure#prefix-event.name=[0-9]+\.+[0-9]+ms/u, output)
+  end
+
+  test "sample with prefix" do
+    Metrix.put_prefix("prefix-")
+    assert line(fn -> Metrix.sample "event.name", "13.4mb" end) == "sample#prefix-event.name=13.4mb"
   end
 end
