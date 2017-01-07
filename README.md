@@ -183,6 +183,35 @@ config :metrix,
   context: %{"source" => "my-app"}
 ```
 
+The format of each metric can also be customized through formats and parameters:
+
+```Elixir
+config :metrix,
+  count_format: "$count#$prefix.$metric",
+  measure_format: "$measure#$prefix.$metric",
+  sample_format: "$sample#$prefix.$metric",
+  parameters: %{
+    :prefix => "my-prefix",
+    :count => "count-it",
+    :measure => "measure-it",
+    :sample => "sample-it",
+  }
+```
+
+Given the above config, `Metrix.count "event.name"` would yield:
+
+```
+count-it#my-prefix.event.name=1
+```
+
+The default formats are:
+
+* count: count#$metric
+* measure: measure#$metric
+* sample: sample#$metric
+
+Where `$metric` is the name of the metric passed in.
+
 Metrix writes to `Logger.info`. To adjust the output target, set the logger configuration in `config.exs`. For instance, to write to `stdout` (the Elixir default) with no timestamp line info, do:
 
 ```elixir

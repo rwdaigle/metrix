@@ -18,7 +18,7 @@ defmodule Metrix.Context do
   Adds the `metadata` to the context
   """
   def put(metadata) do
-    Agent.update(__MODULE__, &Dict.merge(&1, metadata))
+    Agent.update(__MODULE__, &Enum.into(metadata, &1))
   end
 
   @doc """
