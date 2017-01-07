@@ -51,6 +51,7 @@ defmodule Metrix do
   def count(metadata, metric), do: count(metadata, metric, 1)
   def count(metadata, metric, num) do
     metadata
+    |> Enum.into(%{})
     |> add(Formatter.format_count(metric), num)
     |> log
 
@@ -60,6 +61,7 @@ defmodule Metrix do
   def sample(metric, value), do: sample(%{}, metric, value)
   def sample(metadata, metric, value) do
     metadata
+    |> Enum.into(%{})
     |> add(Formatter.format_sample(metric), value)
     |> log
 
@@ -75,6 +77,7 @@ defmodule Metrix do
     end
 
     metadata
+    |> Enum.into(%{})
     |> add(Formatter.format_measure(metric), "#{service_us / 1000}ms")
     |> log
 
@@ -83,12 +86,12 @@ defmodule Metrix do
 
   def log(values) do
     values
-    |> Dict.merge(get_context())
+    |> Map.merge(get_context())
     |> Logfmt.encode
     |> write
   end
 
-  defp add(dict, key, value), do: dict |> Dict.put(key, value)
+  defp add(map, key, value), do: Map.put(map, key, value)
 
   defp write(output), do: output |> Logger.info
 end

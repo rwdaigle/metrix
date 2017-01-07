@@ -107,7 +107,6 @@ defmodule Metrix.Formatter do
     parameters
     |> Map.put("metric", metric)
     |> format_with_parameters(format_string)
-    |> String.to_atom
   end
 
   defp format_with_parameters(parameters, format_string) do
