@@ -3,12 +3,14 @@ require Logger
 defmodule Metrix do
   use Application
   alias Metrix.Context
+  alias Metrix.Modifiers
 
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Metrix.Context, [initial_context()])
+      worker(Context, [initial_context()]),
+      worker(Modifiers, [initial_modifiers()])
     ]
 
     opts = [strategy: :one_for_one, name: Metrix.Supervisor]
@@ -22,6 +24,13 @@ defmodule Metrix do
     end
   end
 
+  defp initial_modifiers do
+    case Application.get_env(:metrix, :prefix) do
+      nil -> %{}
+      prefix -> %{:prefix => prefix}
+    end
+  end
+
   @doc """
   Adds `metadata` to the global context, which will add the metadata values
   to all subsequent metrix output. Global context is useful for component-wide
@@ -32,12 +41,18 @@ defmodule Metrix do
   def get_context, do: Context.get
   def clear_context, do: Context.clear
 
+  @doc """
+  The `prefix` is prepended to the name of the metric.
+  """
+  def put_prefix(prefix), do: Modifiers.put_prefix(prefix)
+  def clear_prefix, do: Modifiers.clear_prefix
+
   def count(metric), do: count(metric, 1)
   def count(metric, num) when is_number(num), do: count(%{}, metric, num)
   def count(metadata, metric), do: count(metadata, metric, 1)
   def count(metadata, metric, num) do
     metadata
-    |> add(:"count##{metric}", num)
+    |> add(format_metric("count", Modifiers.get_prefix, metric), num)
     |> log
 
     metadata
@@ -46,7 +61,7 @@ defmodule Metrix do
   def sample(metric, value), do: sample(%{}, metric, value)
   def sample(metadata, metric, value) do
     metadata
-    |> add(:"sample##{metric}", value)
+    |> add(format_metric("sample", Modifiers.get_prefix, metric), value)
     |> log
 
     metadata
@@ -61,7 +76,7 @@ defmodule Metrix do
     end
 
     metadata
-    |> add(:"measure##{metric}", "#{service_us / 1000}ms")
+    |> add(format_metric("measure", Modifiers.get_prefix, metric), "#{service_us / 1000}ms")
     |> log
 
     ret_value
@@ -77,4 +92,12 @@ defmodule Metrix do
   defp add(dict, key, value), do: dict |> Dict.put(key, value)
 
   defp write(output), do: output |> Logger.info
+
+  defp format_metric(type, nil, metric) do
+    :"#{type}##{metric}"
+  end
+  defp format_metric(type, prefix, metric) do
+    :"#{type}##{prefix}#{metric}"
+  end
+
 end

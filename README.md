@@ -183,6 +183,20 @@ config :metrix,
   context: %{"source" => "my-app"}
 ```
 
+An optional (global) prefix may also be configured:
+
+```elixir
+config :metrix,
+  metric_prefix: "my-prefix."
+```
+
+This value will be prepended to the name of each metric emmitted. Given the above config,
+Metrix.count "event.name" would yield:
+
+```
+count#my-prefix.event.name=1
+```
+
 Metrix writes to `Logger.info`. To adjust the output target, set the logger configuration in `config.exs`. For instance, to write to `stdout` (the Elixir default) with no timestamp line info, do:
 
 ```elixir
