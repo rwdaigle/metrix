@@ -83,8 +83,7 @@ defmodule Metrix do
   end
 
   def log(values) do
-    values
-    |> Dict.merge(get_context())
+    Dict.merge(get_context(), values)
     |> Logfmt.encode
     |> write
   end

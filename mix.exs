@@ -3,7 +3,7 @@ defmodule Metrix.Mixfile do
 
   def project do
     [app: :metrix,
-     version: "0.4.1",
+     version: "0.4.2",
      description: description(),
      elixir: ">= 1.3.0",
      deps: deps(),
@@ -47,6 +47,7 @@ defmodule Metrix.Mixfile do
     [
       maintainers: ["Ryan Daigle <ryan.daigle@gmail.com>"],
       contributors: [
+        "Jared Knipp <jared@spreedly.com>",
         "Kevin Lewis <kevin@spreedly.com>",
         "Emanuel Evans <mail@emanuel.industries>",
         "Stephen Ball <sdball@gmail.com>",

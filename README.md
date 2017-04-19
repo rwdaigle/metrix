@@ -236,12 +236,17 @@ This library was built as an Elixir alternative to the Ruby-based [Scrolls](http
 
 Code contributors include:
 
+* [jknipp](https://github.com/jknipp)
 * [objectuser](https://github.com/objectuser)
 * [sdball](https://github.com/sdball)
 * [davidsantoso](https://github.com/davidsantoso)
 * [shosti](https://github.com/shosti)
 
 ## Changelog
+
+### 0.4.2
+
+* Allow a keyword list to be used with the global context
 
 ### 0.4.1
 
