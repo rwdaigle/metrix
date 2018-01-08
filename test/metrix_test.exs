@@ -67,12 +67,18 @@ defmodule MetrixTest do
     end
   end
 
-  test "measure" do
+  test "measure function latency" do
     output = line(fn -> Metrix.measure "event.name", fn -> :timer.sleep(1) end end)
     assert matches_measure?(output), "Unexpected output format \"#{output}\""
   end
 
-  test "measure with metadata" do
+  test "measure w/ pre-computed latency" do
+    output = line(fn -> Metrix.measure "event.name", 0.912 end)
+    assert matches_measure?(output), "Unexpected output format \"#{output}\""
+    assert output |> String.contains?("=0.912ms"), "Incorrect measurement value"
+  end
+
+  test "measure function latency with metadata" do
     for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
       output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
       assert matches_measure?(output), "Unexpected output format \"#{output}\""
@@ -80,26 +86,45 @@ defmodule MetrixTest do
     end
   end
 
-  test "measure with map metadata passed to function" do
+  test "measure w/ pre-computed latency with metadata" do
+    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+      output = line(fn -> Metrix.measure metadata, "event.name", 12.34 end)
+      assert matches_measure?(output), "Unexpected output format \"#{output}\""
+      assert output |> String.contains?("meta=data")
+      assert output |> String.contains?("=12.34ms"), "Incorrect measurement value"
+    end
+  end
+
+  test "measure function latency with map metadata passed to function" do
     metadata = %{"meta" => "data"}
     output = line(fn -> Metrix.measure metadata, "event.name", fn %{"meta" => _data} -> :timer.sleep(1) end end)
     assert matches_measure?(output), "Unexpected output format \"#{output}\""
     assert output |> String.contains?("meta=data")
   end
 
-  test "measure with keyword list metadata passed to function" do
+  test "measure function latency with keyword list metadata passed to function" do
     metadata = [meta: "data"]
     output = line(fn -> Metrix.measure metadata, "event.name", fn [meta: _data] -> :timer.sleep(1) end end)
     assert matches_measure?(output), "Unexpected output format \"#{output}\""
     assert output |> String.contains?("meta=data")
   end
 
-  test "measure with metadata and global context" do
+  test "measure function latency with metadata and global context" do
     Metrix.add_context %{"meta" => "data_global"}
     for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
       output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
       assert matches_measure?(output), "Unexpected output format \"#{output}\""
       assert output |> String.contains?("meta=data")
+    end
+  end
+
+  test "measure pre-computed latency with metadata and global context" do
+    Metrix.add_context %{"meta" => "data_global"}
+    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+      output = line(fn -> Metrix.measure metadata, "event.name", 78 end)
+      assert matches_measure?(output), "Unexpected output format \"#{output}\""
+      assert output |> String.contains?("meta=data")
+      assert output |> String.contains?("=78ms"), "Incorrect measurement value"
     end
   end
 

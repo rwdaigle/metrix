@@ -67,8 +67,15 @@ defmodule Metrix do
     metadata
   end
 
-  def measure(metric, fun), do: measure(%{}, metric, fun)
-  def measure(metadata, metric, fun) do
+  def measure(metric, ms) when is_number(ms), do: measure(%{}, metric, ms)
+  def measure(metadata, metric, ms) when is_number(ms) do
+    metadata
+    |> add("measure", metric, "#{ms}ms")
+    |> log
+  end
+
+  def measure(metric, fun) when is_function(fun), do: measure(%{}, metric, fun)
+  def measure(metadata, metric, fun) when is_function(fun) do
 
     {service_us, ret_value} = cond do
       is_function(fun, 0) -> :timer.tc(fun)

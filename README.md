@@ -153,6 +153,25 @@ It's common to want to add metadata to a measurement that is used within the fun
 measure#api.request=131ms path=/get client=elixir
 ```
 
+There may be occasions when the latency measurement is pre-computed. In such a case, you can substitute a millisecond measurement argument in place of the function to measure:
+
+```elixir
+import Metrix
+
+latency_ms = 89.21
+measure "api.request", latency_ms end
+
+[path: "/get"]
+|> measure "api.request", latency_ms end
+```
+
+Which will output:
+
+```session
+measure#api.request=89.21ms
+measure#api.request=89.21ms path=/get
+```
+
 Measurements in Librato are collected into median, p95 and p99 series:
 
 ![](http://f.cl.ly/items/0q2o3A1G06442f2G0t39/Image%202015-06-15%20at%206.29.28%20PM.png)
@@ -243,6 +262,10 @@ Code contributors include:
 * [shosti](https://github.com/shosti)
 
 ## Changelog
+
+### 0.5.0
+
+* `measure` now accepts pre-computed millisecond measurements
 
 ### 0.4.2
 

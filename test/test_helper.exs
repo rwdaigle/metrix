@@ -16,6 +16,6 @@ defmodule MetrixTestHelper do
   def silence(fun), do: capture_log(fun); nil
 
   def matches_measure?(output) do
-    Regex.match?(~r/measure#event.name=[0-9]+\.+[0-9]+ms/u, output)
+    Regex.match?(~r/measure#event.name=[0-9]+\.*+[0-9]+ms/u, output)
   end
 end
