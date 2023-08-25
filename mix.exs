@@ -2,21 +2,22 @@ defmodule Metrix.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :metrix,
-     version: "0.5.0",
-     description: description(),
-     elixir: ">= 1.3.0",
-     deps: deps(),
-     package: package(),
-     source_url: "https://github.com/rwdaigle/metrix"]
+    [
+      app: :metrix,
+      version: "0.5.0",
+      description: description(),
+      elixir: "~> 1.15",
+      deps: deps(),
+      package: package(),
+      source_url: "https://github.com/rwdaigle/metrix"
+    ]
   end
 
   # Configuration for the OTP application
   #
   # Type `mix help compile.app` for more information
   def application do
-    [applications: [:logger],
-     mod: {Metrix, []}]
+    [applications: [:logger], mod: {Metrix, []}]
   end
 
   # Dependencies can be Hex packages:
@@ -30,8 +31,8 @@ defmodule Metrix.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
-      {:logfmt, "~> 3.0"},
-      {:ex_doc, "~> 0.7", only: :dev}
+      {:logfmt, "~> 3.3"},
+      {:ex_doc, "~> 0.30.5", only: :dev}
     ]
   end
 
@@ -51,7 +52,8 @@ defmodule Metrix.Mixfile do
         "Kevin Lewis <kevin@spreedly.com>",
         "Emanuel Evans <mail@emanuel.industries>",
         "Stephen Ball <sdball@gmail.com>",
-        "David Santoso"],
+        "David Santoso"
+      ],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/rwdaigle/metrix"},
       files: ~w(mix.exs lib README.md)

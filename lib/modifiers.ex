@@ -6,7 +6,7 @@ defmodule Metrix.Modifiers do
   This could be merged into the Metrix.Context by giving the context a
   namespace within the map.
   """
-  
+
   @doc """
   Starts the agent.
   """
@@ -34,5 +34,4 @@ defmodule Metrix.Modifiers do
   def clear_prefix do
     Agent.update(__MODULE__, &Map.delete(&1, :prefix))
   end
-
 end

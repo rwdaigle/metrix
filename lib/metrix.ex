@@ -9,8 +9,18 @@ defmodule Metrix do
     import Supervisor.Spec, warn: false
 
     children = [
-      worker(Context, [initial_context()]),
-      worker(Modifiers, [initial_modifiers()])
+      %{
+        id: Context,
+        start: {Context, :start_link, [initial_context()]},
+        shutdown: :infinity,
+        type: :supervisor
+      },
+      %{
+        id: Modifiers,
+        start: {Modifiers, :start_link, [initial_modifiers()]},
+        shutdown: :infinity,
+        type: :supervisor
+      }
     ]
 
     opts = [strategy: :one_for_one, name: Metrix.Supervisor]
@@ -38,18 +48,19 @@ defmodule Metrix do
   the life of your application.
   """
   def add_context(metadata), do: Context.put(metadata)
-  def get_context, do: Context.get
-  def clear_context, do: Context.clear
+  def get_context, do: Context.get()
+  def clear_context, do: Context.clear()
 
   @doc """
   The `prefix` is prepended to the name of the metric.
   """
   def put_prefix(prefix), do: Modifiers.put_prefix(prefix)
-  def clear_prefix, do: Modifiers.clear_prefix
+  def clear_prefix, do: Modifiers.clear_prefix()
 
   def count(metric), do: count(metric, 1)
   def count(metric, num) when is_number(num), do: count(%{}, metric, num)
   def count(metadata, metric), do: count(metadata, metric, 1)
+
   def count(metadata, metric, num) do
     metadata
     |> add("count", metric, num)
@@ -59,6 +70,7 @@ defmodule Metrix do
   end
 
   def sample(metric, value), do: sample(%{}, metric, value)
+
   def sample(metadata, metric, value) do
     metadata
     |> add("sample", metric, value)
@@ -68,19 +80,20 @@ defmodule Metrix do
   end
 
   def measure(metric, ms) when is_number(ms), do: measure(%{}, metric, ms)
+  def measure(metric, fun) when is_function(fun), do: measure(%{}, metric, fun)
+
   def measure(metadata, metric, ms) when is_number(ms) do
     metadata
     |> add("measure", metric, "#{ms}ms")
     |> log
   end
 
-  def measure(metric, fun) when is_function(fun), do: measure(%{}, metric, fun)
   def measure(metadata, metric, fun) when is_function(fun) do
-
-    {service_us, ret_value} = cond do
-      is_function(fun, 0) -> :timer.tc(fun)
-      is_function(fun, 1) -> :timer.tc(fun, [metadata])
-    end
+    {service_us, ret_value} =
+      cond do
+        is_function(fun, 0) -> :timer.tc(fun)
+        is_function(fun, 1) -> :timer.tc(fun, [metadata])
+      end
 
     metadata
     |> add("measure", metric, "#{service_us / 1000}ms")
@@ -90,21 +103,21 @@ defmodule Metrix do
   end
 
   def log(values) do
-    Dict.merge(get_context(), values)
-    |> Logfmt.encode
+    Map.merge(get_context(), values)
+    |> Logfmt.encode()
     |> write
   end
 
   defp add(dict, type, metric, value) do
-    dict |> Dict.put(prefix_metric(type, metric), value)
+    dict |> Map.put(prefix_metric(type, metric), value)
   end
 
   defp prefix_metric(type, metric) do
-    case Modifiers.get_prefix do
+    case Modifiers.get_prefix() do
       nil -> :"#{type}##{metric}"
-      _ -> :"#{type}##{Modifiers.get_prefix}#{metric}"
+      _ -> :"#{type}##{Modifiers.get_prefix()}#{metric}"
     end
   end
 
-  defp write(output), do: output |> Logger.info
+  defp write(output), do: output |> Logger.info()
 end
