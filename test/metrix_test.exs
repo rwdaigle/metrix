@@ -8,140 +8,182 @@ defmodule MetrixTest do
     Metrix.clear_prefix
   end
 
-  test "basic count" do
-    assert line(fn -> Metrix.count "event.name" end) == "count#event.name=1"
-  end
+  describe "count" do
 
-  test "basic count with metadata" do
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.count metadata, "event.name" end)
-      assert output |> String.contains?("count#event.name=1")
-      assert output |> String.contains?("meta=data")
-      line(fn -> assert Metrix.count(metadata, "event.name") == metadata end)
+    test "with no args" do
+      for event <- ["event_name", :event_name] do
+        assert line(fn -> Metrix.count(event) end) == "count#event_name=1"
+      end
+    end
+
+    test "with prefix" do
+      Metrix.put_prefix("prefix-")
+      assert line(fn -> Metrix.count "event.name" end) == "count#prefix-event.name=1"
+    end
+
+    test "with metadata" do
+      for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+        for event <- ["event_name", :event_name] do
+          output = line(fn -> Metrix.count(metadata, event) end)
+          assert output |> String.contains?("count#event_name=1")
+          assert output |> String.contains?("meta=data")
+          line(fn -> assert Metrix.count(metadata, event) == metadata end)
+        end
+      end
+    end
+
+    test "with number" do
+      for event <- ["event_name", :event_name] do
+        assert line(fn -> Metrix.count(event, 23) end) == "count#event_name=23"
+      end
+    end
+
+    test "with number and metadata" do
+      for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+        for event <- ["event_name", :event_name] do
+          output = line(fn -> Metrix.count(metadata, event, 23) end)
+          assert output |> String.contains?("count#event_name=23")
+          assert output |> String.contains?("meta=data")
+          line(fn -> assert Metrix.count(metadata, event, 1) == metadata end)
+        end
+      end
+    end
+
+    test "with number, metadata, and global context" do
+      for context <- [%{"context" => "global"}, [context: "global"]] do
+        Metrix.add_context(context)
+        for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+          for event <- ["event_name", :event_name] do
+            output = line(fn -> Metrix.count(metadata, event, 23) end)
+            assert output |> String.contains?("count#event_name=23")
+            assert output |> String.contains?("meta=data")
+            assert output |> String.contains?("context=global")
+          end
+        end
+        Metrix.clear_context()
+      end
     end
   end
 
-  test "count with number" do
-    assert line(fn -> Metrix.count "event.name", 23 end) == "count#event.name=23"
-  end
+  describe "sample" do
 
-  test "count with number and metadata" do
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.count metadata, "event.name", 23 end)
-      assert output |> String.contains?("count#event.name=23")
-      assert output |> String.contains?("meta=data")
-      line(fn -> assert Metrix.count(metadata, "event.name", 1) == metadata end)
+    test "default" do
+      for event <- ["event_name", :event_name] do
+        assert line(fn -> Metrix.sample(event, "13.4mb") end) == "sample#event_name=13.4mb"
+      end
+    end
+
+    test "with prefix" do
+      Metrix.put_prefix("prefix-")
+      for event <- ["event_name", :event_name] do
+        assert line(fn -> Metrix.sample(event, "13.4mb") end) == "sample#prefix-event_name=13.4mb"
+      end
+    end
+
+    test "with metadata" do
+      for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+        for event <- ["event_name", :event_name] do
+          output = line(fn -> Metrix.sample metadata, event, "13.4mb" end)
+          assert output |> String.contains?("sample#event_name=13.4mb")
+          assert output |> String.contains?("meta=data")
+          line(fn -> assert Metrix.sample(metadata, event, "13.4mb") == metadata end)
+        end
+      end
+    end
+
+    test "with metadata and global context" do
+      for context <- [%{"context" => "global"}, [context: "global"]] do
+        Metrix.add_context(context)
+        for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+          for event <- ["event_name", :event_name] do
+            output = line(fn -> Metrix.sample(metadata, event, "13.4mb") end)
+            assert output |> String.contains?("sample#event_name=13.4mb")
+            assert output |> String.contains?("meta=data")
+            assert output |> String.contains?("context=global")
+          end
+        end
+        Metrix.clear_context()
+      end
     end
   end
 
-  test "count with number and metadata and global context" do
-    Metrix.add_context %{"meta" => "data_global"}
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.count metadata, "event.name", 23 end)
-      assert output |> String.contains?("count#event.name=23")
-      assert output |> String.contains?("meta=data")
-      line(fn -> assert Metrix.count(metadata, "event.name", 1) == metadata end)
+  describe "measure" do
+
+    test "function latency" do
+      for event <- ["event_name", :event_name] do
+        output = line(fn -> Metrix.measure(event, fn -> :timer.sleep(1) end) end)
+        assert matches_measure?(output, event), "Unexpected output format \"#{output}\""
+      end
     end
-  end
 
-  test "sample" do
-    assert line(fn -> Metrix.sample "event.name", "13.4mb" end) == "sample#event.name=13.4mb"
-  end
-
-  test "sample with metadata" do
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.sample metadata, "event.name", "13.4mb" end)
-      assert output |> String.contains?("sample#event.name=13.4mb")
-      assert output |> String.contains?("meta=data")
-      line(fn -> assert Metrix.sample(metadata, "event.name", "13.4mb") == metadata end)
+    test "with prefix" do
+      Metrix.put_prefix("prefix-")
+      for event <- ["event_name", :event_name] do
+        output = line(fn -> Metrix.measure(event, fn -> :timer.sleep(1) end) end)
+        assert matches_measure?(output, event, "prefix-"), "Unexpected output format \"#{output}\""
+      end
     end
-  end
 
-  test "sample with metadata and global context" do
-    Metrix.add_context %{"meta" => "data_global"}
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.sample metadata, "event.name", "13.4mb" end)
-      assert output |> String.contains?("sample#event.name=13.4mb")
-      assert output |> String.contains?("meta=data")
-      line(fn -> assert Metrix.sample(metadata, "event.name", "13.4mb") == metadata end)
+    test "with pre-computed latency" do
+      for event <- ["event_name", :event_name] do
+        output = line(fn -> Metrix.measure(event, 0.912) end)
+        assert matches_measure?(output, event), "Unexpected output format \"#{output}\""
+        assert output |> String.contains?("=0.912ms"), "Incorrect measurement value"
+      end
     end
-  end
 
-  test "measure function latency" do
-    output = line(fn -> Metrix.measure "event.name", fn -> :timer.sleep(1) end end)
-    assert matches_measure?(output), "Unexpected output format \"#{output}\""
-  end
+    test "with metadata" do
+      for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+        for event <- ["event_name", :event_name] do
+          output = line(fn -> Metrix.measure(metadata, event, fn -> :timer.sleep(1) end) end)
+          assert matches_measure?(output, event), "Unexpected output format \"#{output}\""
+          assert output |> String.contains?("meta=data")
+        end
+      end
+    end
 
-  test "measure w/ pre-computed latency" do
-    output = line(fn -> Metrix.measure "event.name", 0.912 end)
-    assert matches_measure?(output), "Unexpected output format \"#{output}\""
-    assert output |> String.contains?("=0.912ms"), "Incorrect measurement value"
-  end
+    test "with pre-computed latency and metadata" do
+      for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+        for event <- ["event_name", :event_name] do
+          output = line(fn -> Metrix.measure(metadata, event, 12.34) end)
+          assert matches_measure?(output, event), "Unexpected output format \"#{output}\""
+          assert output |> String.contains?("meta=data")
+          assert output |> String.contains?("=12.34ms"), "Incorrect measurement value"
+        end
+      end
+    end
 
-  test "measure function latency with metadata" do
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
+    test "with map metadata passed to function" do
+      metadata = %{"meta" => "data"}
+      output = line(fn -> Metrix.measure(metadata, "event.name", fn %{"meta" => _data} -> :timer.sleep(1) end) end)
       assert matches_measure?(output), "Unexpected output format \"#{output}\""
       assert output |> String.contains?("meta=data")
     end
-  end
 
-  test "measure w/ pre-computed latency with metadata" do
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.measure metadata, "event.name", 12.34 end)
-      assert matches_measure?(output), "Unexpected output format \"#{output}\""
-      assert output |> String.contains?("meta=data")
-      assert output |> String.contains?("=12.34ms"), "Incorrect measurement value"
-    end
-  end
-
-  test "measure function latency with map metadata passed to function" do
-    metadata = %{"meta" => "data"}
-    output = line(fn -> Metrix.measure metadata, "event.name", fn %{"meta" => _data} -> :timer.sleep(1) end end)
-    assert matches_measure?(output), "Unexpected output format \"#{output}\""
-    assert output |> String.contains?("meta=data")
-  end
-
-  test "measure function latency with keyword list metadata passed to function" do
-    metadata = [meta: "data"]
-    output = line(fn -> Metrix.measure metadata, "event.name", fn [meta: _data] -> :timer.sleep(1) end end)
-    assert matches_measure?(output), "Unexpected output format \"#{output}\""
-    assert output |> String.contains?("meta=data")
-  end
-
-  test "measure function latency with metadata and global context" do
-    Metrix.add_context %{"meta" => "data_global"}
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
+    test "with keyword list metadata passed to function" do
+      metadata = [meta: "data"]
+      output = line(fn -> Metrix.measure(metadata, "event.name", fn [meta: _data] -> :timer.sleep(1) end) end)
       assert matches_measure?(output), "Unexpected output format \"#{output}\""
       assert output |> String.contains?("meta=data")
     end
-  end
 
-  test "measure pre-computed latency with metadata and global context" do
-    Metrix.add_context %{"meta" => "data_global"}
-    for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
-      output = line(fn -> Metrix.measure metadata, "event.name", 78 end)
-      assert matches_measure?(output), "Unexpected output format \"#{output}\""
-      assert output |> String.contains?("meta=data")
-      assert output |> String.contains?("=78ms"), "Incorrect measurement value"
+    test "with metadata and global context" do
+      Metrix.add_context %{"meta" => "data_global"}
+      for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+        output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
+        assert matches_measure?(output), "Unexpected output format \"#{output}\""
+        assert output |> String.contains?("meta=data")
+      end
+    end
+
+    test "measure pre-computed latency with metadata and global context" do
+      Metrix.add_context %{"meta" => "data_global"}
+      for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
+        output = line(fn -> Metrix.measure metadata, "event.name", 78 end)
+        assert matches_measure?(output), "Unexpected output format \"#{output}\""
+        assert output |> String.contains?("meta=data")
+        assert output |> String.contains?("=78ms"), "Incorrect measurement value"
+      end
     end
   end
-
-  test "count with prefix" do
-    Metrix.put_prefix("prefix-")
-    assert line(fn -> Metrix.count "event.name" end) == "count#prefix-event.name=1"
-  end
-
-  test "measure with prefix" do
-    Metrix.put_prefix("prefix-")
-    output = line(fn -> Metrix.measure "event.name", fn -> :timer.sleep(1) end end)
-    assert Regex.match?(~r/measure#prefix-event.name=[0-9]+\.+[0-9]+ms/u, output)
-  end
-
-  test "sample with prefix" do
-    Metrix.put_prefix("prefix-")
-    assert line(fn -> Metrix.sample "event.name", "13.4mb" end) == "sample#prefix-event.name=13.4mb"
-  end
-
 end

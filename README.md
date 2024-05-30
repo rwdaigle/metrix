@@ -1,7 +1,7 @@
 Metrix
 ========
 
-An Elixir library to log custom application metrics (for use by other downstream systems such as [Librato](https://www.librato.com/), [Riemann](http://riemann.io/) etc...)
+An Elixir library to log custom application metrics.
 
 Metrix subscribes to the Twelve Factor App notion that [logs are streams of time-ordered events](http://12factor.net/logs) and that events should be captured and recorded in the [l2met logging convention](https://github.com/ryandotsmith/l2met/wiki/Usage#logging-convention).
 
@@ -24,8 +24,6 @@ Treating "logs as data" in this manner has several advantages, including:
 * The ability to pipe app data to one or more downstream processors, such as Librato for visualization and Reimann for alerting, without requiring modification to the app
 * Data is output via logging and can be manipulated with a multitude of POSIX utilities
 
-If you are looking for a more substantive justification for this style of logging, please see [5 Steps to Better Application Logging](http://www.miyagijournal.com/articles/five-steps-application-logging/).
-
 ## Install
 
 Add `metrix` to your applications in `mix.exs`:
@@ -43,7 +41,7 @@ And declare it as a dependency:
 defp deps do
   [
     # ...
-    {:metrix, "~> 0.4.0"}
+    {:metrix, "~> 1.0"}
   ]
 end
 ```
@@ -65,8 +63,8 @@ When you want to count the occurrences of an event in your app, use `count`:
 ```elixir
 import Metrix
 
-count "app.event"
-count "app.event", 3
+count("app.event")
+count("app.event", 3)
 ```
 
 Which will output:
@@ -79,7 +77,7 @@ count#event.name=3
 Event metadata can be attached by passing in a map as the first argument:
 
 ```elixir
-%{"path" => "/users/1"} |> count "app.event"
+%{"path" => "/users/1"} |> count("app.event")
 ```
 
 Which outputs:
@@ -88,13 +86,13 @@ Which outputs:
 count#event.name=1 path=/users/1
 ```
 
-`metadata` can be a map or keyword list:
+`metadata` can be a map or keyword list (though we'd encourage you to use a map to avoid unbounded atom creation).
 
 ```elixir
-[path: "/users/1"] |> count "app.event"
+[path: "/users/1"] |> count("app.event")
 ```
 
-When passed to log processors like Librato, counts can be min, max, summed, stacked etc...
+When passed to log processors that are capable of parsing structured logs, counts can be min, max, summed, stacked etc...
 
 ![](http://f.cl.ly/items/1C2r2e1p2E233m0H3S2s/Image%202015-06-15%20at%209.26.29%20AM.png)
 
@@ -107,8 +105,8 @@ Samples are logged in the same fashion as `count`:
 ```elixir
 import Metrix
 
-sample "file.size", "12.3kb"
-[file: "/images/hi.png"] |> sample "file.size", "12.3kb"
+sample("file.size", "12.3kb")
+%{"file" => "/images/hi.png"} |> sample("file.size", "12.3kb")
 ```
 
 Which will output:
@@ -118,7 +116,7 @@ sample#file.size=12.3kb
 sample#file.size=12.3kb file=/images/hi.png
 ```
 
-Samples are captured in Librato with the units used in the measurement value (`kb` in this case) and can be averaged, p50, p95, and p99d.
+Samples can be averaged, p50, p95, and p99d.
 
 ![](http://cl.ly/bdHZ/Image%202015-06-15%20at%209.23.48%20AM.png)
 
@@ -129,10 +127,10 @@ Measurements are measures of time, most often used to track execution time. As s
 ```elixir
 import Metrix
 
-measure "api.request", fn -> HTTPotion.get "httpbin.org/get" end
+measure("api.request", fn -> HTTPotion.get "httpbin.org/get" end)
 
-[path: "/get"]
-|> measure "api.request", fn -> HTTPotion.get "httpbin.org/get" end
+%{"path" => "/get"}
+|> measure("api.request", fn -> HTTPotion.get "httpbin.org/get" end)
 ```
 
 Measurements are taken in `ms`:
@@ -147,8 +145,9 @@ It's common to want to add metadata to a measurement that is used within the fun
 
 ```elixir
 %{"path" => "/get", "client" => "elixir"}
-|> measure "api.request", fn(%{"path" => path}) -> HTTPotion.get "httpbin.org#{path}" end
+|> measure("api.request", fn(%{"path" => path}) -> HTTPotion.get "httpbin.org#{path}" end)
 ```
+
 ```session
 measure#api.request=131ms path=/get client=elixir
 ```
@@ -156,13 +155,11 @@ measure#api.request=131ms path=/get client=elixir
 There may be occasions when the latency measurement is pre-computed. In such a case, you can substitute a millisecond measurement argument in place of the function to measure:
 
 ```elixir
-import Metrix
-
 latency_ms = 89.21
-measure "api.request", latency_ms end
+measure("api.request", latency_ms)
 
-[path: "/get"]
-|> measure "api.request", latency_ms end
+%{"path" => "/get"}
+|> measure("api.request", latency_ms)
 ```
 
 Which will output:
@@ -172,7 +169,7 @@ measure#api.request=89.21ms
 measure#api.request=89.21ms path=/get
 ```
 
-Measurements in Librato are collected into median, p95 and p99 series:
+Measurements can be aggregated into median, p95 and p99 series:
 
 ![](http://f.cl.ly/items/0q2o3A1G06442f2G0t39/Image%202015-06-15%20at%206.29.28%20PM.png)
 
@@ -181,8 +178,8 @@ Measurements in Librato are collected into median, p95 and p99 series:
 Often times there is metadata you want applied to every measurement. For instance a `source` element indicating which server the output originated from or `app` which differentiates output from multiple components going to the same downstream processor. This type of universally applicable metadata can be set once using the global context:
 
 ```elixir
-Metrix.add_context %{"source" => System.get_env("NODE_NAME")}
-Metrix.count "event.name"
+Metrix.add_context(%{"source" => System.get_env("NODE_NAME")})
+Metrix.count("event.name")
 ```
 
 Outputs:
@@ -209,7 +206,6 @@ count#app-prefix.event.name=1
 ```
 
 The prefix can be cleared with `Metrix.clear_prefix`, though be aware it is global prefix and will be cleared for all output.
-
 
 ### Configuration
 
@@ -277,6 +273,13 @@ Code contributors include:
 * [shosti](https://github.com/shosti)
 
 ## Changelog
+
+### 1.0.0
+
+* Bump dev env to modern versions of Elixir (v1.16.3) 
+* Clean up dependencies
+* Be more explicit internally with map vs. keyword list manipulation
+* Additional tests
 
 ### 0.5.0
 

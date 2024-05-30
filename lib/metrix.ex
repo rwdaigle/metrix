@@ -97,28 +97,21 @@ defmodule Metrix do
     ret_value
   end
 
-  def log(values) when is_map(values) do
-    Map.merge(get_context(), values)
-    |> Logfmt.encode
-    |> write
-  end
-  def log(values) when is_list(values) do
-    values
-    |> Enum.into(%{})
-    |> log
-  end
-
+  defp add(list, type, metric, value) when is_list(list), do: add(Enum.into(list, %{}), type, metric, value)
   defp add(map, type, metric, value) when is_map(map) do
     Map.put(map, prefix_metric(type, metric), value)
   end
-  defp add(list, type, metric, value) when is_list(list) do
-    [{prefix_metric(type, metric), value} | list]
+
+  defp log(values = %{}) do
+    Map.merge(values, get_context())
+    |> Logfmt.encode
+    |> write
   end
 
   defp prefix_metric(type, metric) do
     case Modifiers.get_prefix() do
-      nil -> :"#{type}##{metric}"
-      _ -> :"#{type}##{Modifiers.get_prefix}#{metric}"
+      nil -> "#{type}##{metric}"
+      _ -> "#{type}##{Modifiers.get_prefix}#{metric}"
     end
   end
 
