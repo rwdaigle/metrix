@@ -30,8 +30,7 @@ defmodule Metrix.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
-      {:logfmt, "~> 3.0"},
-      {:ex_doc, "~> 0.7", only: :dev}
+      {:logfmt, "~> 3.3"}
     ]
   end
 
