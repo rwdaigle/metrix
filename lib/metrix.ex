@@ -60,28 +60,20 @@ defmodule Metrix do
   def count(metric, num) when is_number(num), do: count(%{}, metric, num)
   def count(metadata, metric), do: count(metadata, metric, 1)
   def count(metadata, metric, num) do
-    metadata
-    |> add("count", metric, num)
-    |> log
-
+    log(format_metric("count", metric, num), metadata)
     metadata
   end
 
   def sample(metric, value), do: sample(%{}, metric, value)
   def sample(metadata, metric, value) do
-    metadata
-    |> add("sample", metric, value)
-    |> log
-
+    log(format_metric("sample", metric, value), metadata)
     metadata
   end
 
   def measure(metric, ms) when is_number(ms), do: measure(%{}, metric, ms)
   def measure(metric, fun) when is_function(fun), do: measure(%{}, metric, fun)
   def measure(metadata, metric, ms) when is_number(ms) do
-    metadata
-    |> add("measure", metric, "#{ms}ms")
-    |> log
+    log(format_metric("measure", metric, "#{ms}ms"), metadata)
   end
   def measure(metadata, metric, fun) when is_function(fun) do
 
@@ -90,22 +82,23 @@ defmodule Metrix do
       is_function(fun, 1) -> :timer.tc(fun, [metadata])
     end
 
-    metadata
-    |> add("measure", metric, "#{service_us / 1000}ms")
-    |> log
+    log(format_metric("measure", metric, "#{service_us / 1000}ms"), metadata)
 
     ret_value
   end
 
-  defp add(list, type, metric, value) when is_list(list), do: add(Enum.into(list, %{}), type, metric, value)
-  defp add(map, type, metric, value) when is_map(map) do
-    Map.put(map, prefix_metric(type, metric), value)
+  defp format_metric(type, metric, value) do
+    Logfmt.encode(Map.put(%{}, prefix_metric(type, metric), value))
   end
 
-  defp log(values = %{}) do
-    Map.merge(values, get_context())
-    |> Logfmt.encode
-    |> write
+  defp log(formatted_metric, metadata) do
+    metadata_with_context =
+      metadata
+      |> Enum.into(%{})
+      |> Map.merge(get_context())
+      |> Logfmt.encode
+
+    write("#{formatted_metric} #{metadata_with_context}")
   end
 
   defp prefix_metric(type, metric) do

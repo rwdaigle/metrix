@@ -276,6 +276,7 @@ Code contributors include:
 
 ### 1.0.0
 
+* Ensure that metric name is the first element output
 * Bump dev env to modern versions of Elixir (v1.16.3) 
 * Clean up dependencies
 * Be more explicit internally with map vs. keyword list manipulation

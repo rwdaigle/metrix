@@ -25,6 +25,7 @@ defmodule MetrixTest do
       for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
         for event <- ["event_name", :event_name] do
           output = line(fn -> Metrix.count(metadata, event) end)
+          assert matches_count?(output, event)
           assert output |> String.contains?("count#event_name=1")
           assert output |> String.contains?("meta=data")
           line(fn -> assert Metrix.count(metadata, event) == metadata end)
@@ -42,7 +43,7 @@ defmodule MetrixTest do
       for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
         for event <- ["event_name", :event_name] do
           output = line(fn -> Metrix.count(metadata, event, 23) end)
-          assert output |> String.contains?("count#event_name=23")
+          assert matches_count?(output, event)
           assert output |> String.contains?("meta=data")
           line(fn -> assert Metrix.count(metadata, event, 1) == metadata end)
         end
@@ -55,6 +56,7 @@ defmodule MetrixTest do
         for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
           for event <- ["event_name", :event_name] do
             output = line(fn -> Metrix.count(metadata, event, 23) end)
+            assert matches_count?(output, event)
             assert output |> String.contains?("count#event_name=23")
             assert output |> String.contains?("meta=data")
             assert output |> String.contains?("context=global")
@@ -84,6 +86,7 @@ defmodule MetrixTest do
       for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
         for event <- ["event_name", :event_name] do
           output = line(fn -> Metrix.sample metadata, event, "13.4mb" end)
+          assert matches_sample?(output, event)
           assert output |> String.contains?("sample#event_name=13.4mb")
           assert output |> String.contains?("meta=data")
           line(fn -> assert Metrix.sample(metadata, event, "13.4mb") == metadata end)
@@ -97,6 +100,7 @@ defmodule MetrixTest do
         for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
           for event <- ["event_name", :event_name] do
             output = line(fn -> Metrix.sample(metadata, event, "13.4mb") end)
+            assert matches_sample?(output, event)
             assert output |> String.contains?("sample#event_name=13.4mb")
             assert output |> String.contains?("meta=data")
             assert output |> String.contains?("context=global")
@@ -156,14 +160,14 @@ defmodule MetrixTest do
     test "with map metadata passed to function" do
       metadata = %{"meta" => "data"}
       output = line(fn -> Metrix.measure(metadata, "event.name", fn %{"meta" => _data} -> :timer.sleep(1) end) end)
-      assert matches_measure?(output), "Unexpected output format \"#{output}\""
+      assert matches_measure?(output, "event.name"), "Unexpected output format \"#{output}\""
       assert output |> String.contains?("meta=data")
     end
 
     test "with keyword list metadata passed to function" do
       metadata = [meta: "data"]
       output = line(fn -> Metrix.measure(metadata, "event.name", fn [meta: _data] -> :timer.sleep(1) end) end)
-      assert matches_measure?(output), "Unexpected output format \"#{output}\""
+      assert matches_measure?(output, "event.name"), "Unexpected output format \"#{output}\""
       assert output |> String.contains?("meta=data")
     end
 
@@ -171,7 +175,7 @@ defmodule MetrixTest do
       Metrix.add_context %{"meta" => "data_global"}
       for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
         output = line(fn -> Metrix.measure metadata, "event.name", fn -> :timer.sleep(1) end end)
-        assert matches_measure?(output), "Unexpected output format \"#{output}\""
+        assert matches_measure?(output, "event.name"), "Unexpected output format \"#{output}\""
         assert output |> String.contains?("meta=data")
       end
     end
@@ -180,7 +184,7 @@ defmodule MetrixTest do
       Metrix.add_context %{"meta" => "data_global"}
       for metadata <- [%{"meta" => "data"}, [meta: "data"]] do
         output = line(fn -> Metrix.measure metadata, "event.name", 78 end)
-        assert matches_measure?(output), "Unexpected output format \"#{output}\""
+        assert matches_measure?(output, "event.name"), "Unexpected output format \"#{output}\""
         assert output |> String.contains?("meta=data")
         assert output |> String.contains?("=78ms"), "Incorrect measurement value"
       end
