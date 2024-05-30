@@ -12,7 +12,7 @@ defmodule MetrixTestHelper do
 
   import ExUnit.CaptureLog
 
-  def line(fun), do: capture_log(fun) |> String.strip
+  def line(fun), do: capture_log(fun) |> String.trim
   def silence(fun), do: capture_log(fun); nil
 
   def matches_measure?(output) do

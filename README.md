@@ -241,6 +241,21 @@ If your app is deployed to Heroku, just add the Librato add-on and all [custom c
 
 If you already have a Librato account, you can still stream your data to from Heroku by setting up a [custom log drain](https://www.librato.com/docs/kb/collect/integrations/heroku_integration.html).
 
+## Development
+
+To develop and test locally we assume the use of the [asdf version manager](https://asdf-vm.com) and have a local `.tool-versions` to establish the correct versions of Erlang/Elixir for this project.
+
+```bash
+asdf install elixir 1.12.3-otp-24
+```
+
+Then run the local test suite:
+
+```bash
+mix deps.get
+mix test
+```
+
 ## Todo
 
 There are a few known missing pieces, including:
